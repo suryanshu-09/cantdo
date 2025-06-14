@@ -1,4 +1,4 @@
-module github.com/suryanshu-09/pomodoro
+module github.com/suryanshu-09/cantdo
 
 go 1.24.4
 
