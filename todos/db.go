@@ -39,13 +39,25 @@ func NewDB() (*DB, error) {
 	return &DB{db_: db}, nil
 }
 
+func (db *DB) Close() {
+	squeel, err := db.db_.DB()
+	if err != nil {
+		writeError(err, "could not close db")
+	}
+	squeel.Close()
+}
+
+func writeError(err error, str string) {
+	errFile, _ := os.OpenFile("error.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	defer errFile.Close()
+	errFile.WriteString("For Input: " + str + "\n")
+	errFile.WriteString(err.Error() + "\n")
+}
+
 func (db *DB) CreateTodo(todo ListTodo) {
 	td := ToDo{Title: todo.Title, Description: todo.Description, Status: PENDING}
 	if result := db.db_.Create(&td); result.Error != nil {
-		errFile, _ := os.OpenFile("error.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		defer errFile.Close()
-		errFile.WriteString("For Input: " + todo.Title + "\n")
-		errFile.WriteString(result.Error.Error() + "\n")
+		writeError(result.Error, todo.Title)
 	}
 }
 

@@ -4,13 +4,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/suryanshu-09/pomodoro/todos"
+	"github.com/suryanshu-09/cantdo/todos"
 )
 
 func TestDB(t *testing.T) {
 	t.Run("create and read", func(t *testing.T) {
 		db, err := todos.NewDB()
 		defer db.Flush()
+		defer db.Close()
 		if err != nil {
 			t.Errorf("db creation failed:%s", err.Error())
 		}
@@ -35,6 +36,7 @@ func TestDB(t *testing.T) {
 	t.Run("update status and delete", func(t *testing.T) {
 		db, err := todos.NewDB()
 		defer db.Flush()
+		defer db.Close()
 		if err != nil {
 			t.Errorf("db creation failed:%s", err.Error())
 		}

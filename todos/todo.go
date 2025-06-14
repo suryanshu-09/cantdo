@@ -175,6 +175,7 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "q":
 			if pM.Focus == 0 {
+				pM.db.Close()
 				return pM, tea.Quit
 			}
 
