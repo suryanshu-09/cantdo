@@ -69,7 +69,7 @@ func CreateEditPane(todos []ListTodo) [][]textinput.Model {
 		editTitle := textinput.New()
 		editTitle.Placeholder = todo.Title
 		editTitle.Prompt = "Edit Title: "
-		editTitle.SetWidth(32)
+		editTitle.SetWidth(128)
 		editTitle.CharLimit = 32
 
 		editTitle.Styles.Focused.Prompt = styleFocused
@@ -78,7 +78,7 @@ func CreateEditPane(todos []ListTodo) [][]textinput.Model {
 		editDesc := textinput.New()
 		editDesc.Placeholder = todo.Description
 		editDesc.Prompt = "Edit Description: "
-		editDesc.SetWidth(32)
+		editDesc.SetWidth(160)
 		editDesc.CharLimit = 128
 
 		editDesc.Styles.Focused.Prompt = styleFocused
@@ -97,7 +97,7 @@ func newSession(todosList []ListTodo) *PaneModel {
 	titleInput := textinput.New()
 	titleInput.Placeholder = "Title"
 	titleInput.Prompt = "Title: "
-	titleInput.SetWidth(32)
+	titleInput.SetWidth(44)
 	titleInput.CharLimit = 32
 
 	titleInput.Styles.Focused.Prompt = styleFocused
@@ -107,7 +107,7 @@ func newSession(todosList []ListTodo) *PaneModel {
 	descInput := textinput.New()
 	descInput.Placeholder = "Description"
 	descInput.Prompt = "Description: "
-	descInput.SetWidth(32)
+	descInput.SetWidth(160)
 	descInput.CharLimit = 128
 
 	descInput.Styles.Focused.Prompt = styleFocused
@@ -153,6 +153,7 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		terminalHeight = msg.Height
 		if !ready {
 			vp := viewport.New(viewport.WithHeight(msg.Height-headerViewHeight-footerViewHeight), viewport.WithWidth(msg.Width))
+			vp.SoftWrap = false
 			vp.YPosition = headerViewHeight
 			pM.viewPort = vp
 			ready = true
@@ -195,16 +196,22 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					pM.CP.cursor = (pM.CP.cursor + 1) % 2
 					pM.CP.inputs[pM.CP.cursor].Focus()
 				case 1:
-					pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Blur()
-					if pM.EP.cursorInp == 1 {
-						pM.EP.cursorTodo = (pM.EP.cursorTodo + 1) % len(pM.EP.inputs)
+					if pM.EP.cursorTodo < len(pM.EP.inputs)-1 || (pM.EP.cursorTodo == len(pM.EP.inputs)-1 && pM.EP.cursorInp == 0) {
+						pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Blur()
+						if pM.EP.cursorInp == 1 {
+							pM.EP.cursorTodo = pM.EP.cursorTodo + 1
+						}
+						pM.EP.cursorInp = (pM.EP.cursorInp + 1) % 2
+						pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Focus()
 					}
-					pM.EP.cursorInp = (pM.EP.cursorInp + 1) % 2
-					pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Focus()
 				case 0:
-					pM.VP.cursor = (pM.VP.cursor + 1) % len(pM.ToDos)
+					// pM.VP.cursor = (pM.VP.cursor + 1) % len(pM.ToDos)
+					if pM.VP.cursor < len(pM.ToDos)-1 {
+						pM.VP.cursor++
+					}
 				}
 			}
+			pM.updateViewportContent()
 
 		case "up":
 			if len(pM.ToDos) > 0 {
@@ -214,21 +221,28 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					pM.CP.cursor = (pM.CP.cursor + 1) % 2
 					pM.CP.inputs[pM.CP.cursor].Focus()
 				case 1:
-					pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Blur()
-					if pM.EP.cursorInp == 0 {
-						pM.EP.cursorTodo = (pM.EP.cursorTodo - 1 + len(pM.EP.inputs)) % len(pM.EP.inputs)
+					if pM.EP.cursorTodo > 0 || (pM.EP.cursorTodo == 0 && pM.EP.cursorInp == 1) {
+						pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Blur()
+						if pM.EP.cursorInp == 0 {
+							pM.EP.cursorTodo = pM.EP.cursorTodo - 1
+						}
+						pM.EP.cursorInp = (pM.EP.cursorInp + 1) % 2
+						pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Focus()
 					}
-					pM.EP.cursorInp = (pM.EP.cursorInp + 1) % 2
-					pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Focus()
 				case 0:
-					pM.VP.cursor = (pM.VP.cursor - 1 + len(pM.ToDos)) % len(pM.ToDos)
+					// pM.VP.cursor = (pM.VP.cursor - 1 + len(pM.ToDos)) % len(pM.ToDos)
+					if pM.VP.cursor > 0 {
+						pM.VP.cursor--
+					}
 				}
 			}
+			pM.updateViewportContent()
 
 		case "space":
-			if pM.Focus == 0 {
-				pM.VP.selected[pM.VP.cursor] = !pM.VP.selected[pM.VP.cursor]
-			}
+			// if pM.Focus == 0 {
+			// 	pM.VP.selected[pM.VP.cursor] = !pM.VP.selected[pM.VP.cursor]
+			// }
+			// pM.updateViewportContent()
 
 		case "enter":
 			switch pM.Focus {
@@ -248,10 +262,12 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					epButton = false
 					pM.EP.inputs = CreateEditPane(pM.ToDos)
+					pM.updateViewportContent()
 					return pM, nil
 				}
 
 			case 1:
+				epButton = false
 				for i, inputs := range pM.EP.inputs {
 					if inputs[0].Value() != "" {
 						pM.ToDos[i].Title = inputs[0].Value()
@@ -266,6 +282,7 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					pM.EP.inputs[0][0].Focus()
 				}
 				pM.db.UpdateTodo(pM.ToDos)
+				pM.updateViewportContent()
 
 			case 0:
 				for i, selected := range pM.ToDos {
@@ -274,6 +291,7 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 				pM.ToDos = pM.db.ReadTodo()
+				pM.updateViewportContent()
 				return pM, nil
 			}
 
@@ -285,25 +303,25 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				pM.CP.inputs[pM.CP.cursor].Focus()
 
 			case 1:
-				pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Blur()
-				if pM.EP.cursorInp == 1 {
-					pM.EP.cursorTodo = (pM.EP.cursorTodo + 1) % len(pM.EP.inputs)
-				}
-				pM.EP.cursorInp = (pM.EP.cursorInp + 1) % 2
-				pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Focus()
+				// pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Blur()
+				// if pM.EP.cursorInp == 1 {
+				// 	pM.EP.cursorTodo = (pM.EP.cursorTodo + 1) % len(pM.EP.inputs)
+				// }
+				// pM.EP.cursorInp = (pM.EP.cursorInp + 1) % 2
+				// pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Focus()
 
 			case 0:
 				pM.VP.selected[pM.VP.cursor] = !pM.VP.selected[pM.VP.cursor]
+				pM.VP.selected = make(map[int]bool, 0)
 			}
+			pM.updateViewportContent()
 		}
 	}
-	var cmd tea.Cmd
-	pM.viewPort, cmd = pM.viewPort.Update(msg)
-	cmds = append(cmds, cmd)
 
 	for i := range pM.CP.inputs {
 		var cmd tea.Cmd
 		pM.CP.inputs[i], cmd = pM.CP.inputs[i].Update(msg)
+		pM.updateViewportContent()
 		cmds = append(cmds, cmd)
 	}
 
@@ -311,12 +329,15 @@ func (pM PaneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		for j := range pM.EP.inputs[i] {
 			pM.EP.inputs[i][j], cmd = pM.EP.inputs[i][j].Update(msg)
-			if cmd != nil {
-				epButton = true
-			}
+			pM.updateViewportContent()
+			epButton = true
 			cmds = append(cmds, cmd)
 		}
 	}
+
+	var cmd tea.Cmd
+	pM.viewPort, cmd = pM.viewPort.Update(msg)
+	cmds = append(cmds, cmd)
 
 	return pM, tea.Batch(cmds...)
 }
@@ -340,10 +361,11 @@ func (pM *PaneModel) updateViewportContent() {
 				checked = styleSelected.Render("[x]")
 			}
 			b.WriteString(fmt.Sprintf("%s%s %s %s\n", cursor, checked, styleTitle.Render(todo.Title), styleDesc.Render("→ "+todo.Description)))
-			b.WriteString("      " + styleStatus.Render(fmt.Sprintf("Status: %d", todo.Status)) + "\n")
+			b.WriteString("      " + styleStatus.Render(fmt.Sprintf("Status: %d", todo.Status)))
+			if i != len(pM.ToDos)-1 {
+				b.WriteString("\n\n")
+			}
 		}
-		b.WriteString("\n")
-		b.WriteString(styleHint.Render("space: select | enter: update status"))
 	case 1:
 		if len(pM.EP.inputs) == 0 {
 			b.WriteString(styleHint.Render("Edit pane empty, please add some todos in the create pane.\n"))
@@ -367,8 +389,6 @@ func (pM *PaneModel) updateViewportContent() {
 		} else {
 			b.WriteString(blurredButton)
 		}
-		b.WriteString("\n")
-		b.WriteString(styleHint.Render("tab: next field | enter: submit"))
 	case 2:
 		for _, input := range pM.CP.inputs {
 			b.WriteString(input.View() + "\n\n")
@@ -378,46 +398,64 @@ func (pM *PaneModel) updateViewportContent() {
 		} else {
 			b.WriteString(blurredButton)
 		}
-		b.WriteString("\n")
-		b.WriteString(styleHint.Render("tab: next field | enter: submit"))
 	}
 
-	finalBody := lipgloss.NewStyle().Margin(2).Align(lipgloss.Left).Render(b.String())
+	headerViewHeight := lipgloss.Height(pM.headerView())
+	footerViewHeight := lipgloss.Height(pM.footerView())
+	borderHeight := terminalHeight - headerViewHeight - footerViewHeight
+	finalBody := lipgloss.NewStyle().Padding(1, 2).Align(lipgloss.Left).Border(lipgloss.RoundedBorder(), false, true).Width(terminalWidth).Height(borderHeight).Render(b.String())
 
 	pM.body = finalBody
 	pM.viewPort.SetContent(pM.body)
 }
 
+func (pM PaneModel) FindHeigthtEP(cursorTodo, cursorInp int) int {
+	height := 0
+	j := 0
+	for i := range cursorTodo + 1 {
+		if i == cursorTodo {
+			height += lipgloss.Height(pM.EP.inputs[i][j].Prompt)
+		}
+		height += lipgloss.Height(pM.EP.inputs[i][j].Prompt)
+		j = (j + 1) % 2
+	}
+	return height - 1
+}
+
+func (pM PaneModel) FindHeigthtCP(c int) int {
+	height := 0
+	for i := range c + 1 {
+		height += lipgloss.Height(pM.CP.inputs[i].Prompt) + i
+	}
+	return height
+}
+
 func (pM PaneModel) View() (string, *tea.Cursor) {
 	var cursor *tea.Cursor
 
+	headerViewHeight := lipgloss.Height(pM.headerView())
+	footerViewHeight := lipgloss.Height(pM.footerView())
+	borderHeight := terminalHeight - headerViewHeight - footerViewHeight
 	switch pM.Focus {
 	case 1:
 		if len(pM.EP.inputs) > 0 {
 			cursor = pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Cursor()
-			cursor.Y = lipgloss.Height(pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Placeholder) + 1
+			cursor.Y = pM.FindHeigthtEP(pM.EP.cursorTodo, pM.EP.cursorInp) + lipgloss.Height(pM.headerView())%(borderHeight)
+			cursor.X = lipgloss.Width(pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Value()+pM.EP.inputs[pM.EP.cursorTodo][pM.EP.cursorInp].Prompt) + 8
 			cursor.Blink = true
 			cursor.Color = lipgloss.Color("#69ffb4")
 		}
 	case 2:
 		cursor = pM.CP.inputs[pM.CP.cursor].Cursor()
-		cursor.Y = lipgloss.Height(pM.CP.inputs[pM.CP.cursor].Placeholder) + 1
+		cursor.Y = pM.FindHeigthtCP(pM.CP.cursor) + lipgloss.Height(pM.headerView())
+		cursor.X = lipgloss.Width(pM.CP.inputs[pM.CP.cursor].Value()+pM.CP.inputs[pM.CP.cursor].Prompt) + 3
 		cursor.Blink = true
 		cursor.Color = lipgloss.Color("#69ffb4")
 	}
 
-	headerViewHeight := lipgloss.Height(pM.headerView())
-	footerViewHeight := lipgloss.Height(pM.footerView())
-	borderHeight := pM.viewPort.Height() - headerViewHeight - footerViewHeight
-
 	return lipgloss.JoinVertical(lipgloss.Left,
 		pM.headerView(),
-		lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			Width(terminalWidth).
-			Height(borderHeight).
-			BorderForeground(lipgloss.Color("#909090")).
-			Render(pM.viewPort.View()),
+		pM.viewPort.View(),
 		pM.footerView()), cursor
 }
 
@@ -433,17 +471,44 @@ func (pM PaneModel) headerView() string {
 		renderTab("Edit Todos", pM.Focus == 1),
 		renderTab("Create Todos", pM.Focus == 2),
 	)
-	return lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Width(terminalWidth).Padding(1).Render(title)
+	headerStyle := lipgloss.RoundedBorder()
+	headerStyle.Right = "├"
+	hStyle := lipgloss.NewStyle().BorderStyle(headerStyle)
+	text := hStyle.Render(title)
+	line := strings.Repeat("─", max(0, terminalWidth-lipgloss.Width(text)))
+	header := lipgloss.JoinHorizontal(lipgloss.Center, text, line)
+	return header
 }
 
 func (pM PaneModel) footerView() string {
 	quit := (styleHint.Render("ctrl+c: Quit"))
 	flush := ("    " + styleHint.Render("ctrl+x: Flush Data"))
-	return lipgloss.JoinHorizontal(lipgloss.Center, quit, flush)
+	var hints string
+	switch pM.Focus {
+	case 2:
+		hints = ("    " + styleHint.Render("tab: next field | enter: submit"))
+	case 1:
+		hints = ("    " + styleHint.Render("arrow keys: move around | enter: submit"))
+	case 0:
+		hints = ("    " + styleHint.Render("tab: select | enter: update status"))
+	}
+	footerStyle := lipgloss.RoundedBorder()
+	footerStyle.Left = "┤"
+	fStyle := lipgloss.NewStyle().BorderStyle(footerStyle)
+	text := fStyle.Render(lipgloss.JoinHorizontal(lipgloss.Center, quit, flush, hints))
+	line := strings.Repeat("─", max(0, terminalWidth-lipgloss.Width(text)))
+	footer := lipgloss.JoinHorizontal(lipgloss.Center, line, text)
+	return footer
 }
 
 func Render() {
 	// todos := []ListTodo{{Title: "Gae Man tries Golang", Description: "Let's see if he's any good.", Status: PENDING}, {Title: "Trying harder he is", Description: "Won't make it he.", Status: PENDING}}
+	f, err := tea.LogToFile("debug.log", "debug")
+	if err != nil {
+		fmt.Println("fatal:", err)
+		os.Exit(1)
+	}
+	defer f.Close()
 	if _, err := tea.NewProgram(newSession(nil), tea.WithAltScreen(), tea.WithMouseCellMotion()).Run(); err != nil {
 		slog.Error("could not run app", "error", err)
 		os.Exit(1)

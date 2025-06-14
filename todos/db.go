@@ -2,6 +2,7 @@ package todos
 
 import (
 	"os"
+	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -52,7 +53,24 @@ func (db *DB) UpdateStatus(todo ListTodo) {
 	var td ToDo
 	db.db_.Where("title = ?", todo.Title).First(&td)
 	td.Status = (td.Status + 1) % 2
+	if td.Status == COMPLETE {
+		go db.DeleteQueue(todo, &DefaultSleeper{})
+	}
 	db.db_.Save(&td)
+}
+
+type Sleeper interface {
+	Sleep()
+}
+type DefaultSleeper struct{}
+
+func (d *DefaultSleeper) Sleep() {
+	time.Sleep(1 * time.Hour)
+}
+
+func (db *DB) DeleteQueue(todo ListTodo, sleeper Sleeper) {
+	sleeper.Sleep()
+	db.db_.Where("title = ?", todo.Title).Delete(&ToDo{})
 }
 
 func (db *DB) UpdateTodo(todos []ListTodo) {
