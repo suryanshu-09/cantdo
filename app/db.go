@@ -2,7 +2,6 @@ package app
 
 import (
 	"os"
-	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -71,35 +70,22 @@ func (db *DB) CreateTodo(todo Todo) {
 func (db *DB) UpdateStatus(todo Todo) {
 	var td ToDoSchema
 	db.db_.Where("title = ?", todo.Title_).First(&td)
-	td.Status = (td.Status + 1) % 2
-	if td.Status == COMPLETE {
-		go db.DeleteQueue(todo, &DefaultSleeper{})
-	}
+	td.Status = (td.Status + 1) % 3
 	db.db_.Save(&td)
-}
-
-type Sleeper interface {
-	Sleep()
-}
-type DefaultSleeper struct{}
-
-func (d *DefaultSleeper) Sleep() {
-	time.Sleep(1 * time.Hour)
 }
 
 func (db *DB) Delete(todo Todo) {
 	db.db_.Where("title = ?", todo.Title_).Delete(&ToDoSchema{})
 }
 
-func (db *DB) DeleteQueue(todo Todo, sleeper Sleeper) {
-	sleeper.Sleep()
-	db.db_.Where("title = ?", todo.Title_).Delete(&ToDoSchema{})
-}
-
-func (db *DB) UpdateTodo(todos []Todo) {
-	db.Flush()
-	for _, todo := range todos {
+func (db *DB) UpdateDescription(todo Todo) {
+	var td ToDoSchema
+	found := db.db_.Where("title = ?", todo.Title_).First(&td)
+	if found.Error != nil {
 		db.CreateTodo(todo)
+	} else {
+		td.Description = todo.Description_
+		db.db_.Save(&td)
 	}
 }
 

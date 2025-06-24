@@ -1,9 +1,13 @@
 package main
 
 import (
-	"github.com/suryanshu-09/cantdo/todos"
+	"github.com/suryanshu-09/cantdo/app"
 )
 
 func main() {
-	todos.Render()
+	RunApp()
+}
+
+func RunApp() {
+	app.Render()
 }

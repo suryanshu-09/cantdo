@@ -44,6 +44,15 @@ func updateList(msg tea.Msg, m *list.Model) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "c", "e":
+			selectedIndex := m.Index()
+			if selectedIndex < len(m.Items()) {
+				todo := m.SelectedItem().(Todo)
+				app.editpane.todo = &todo
+				InitEditPane()
+				app.state = editPane
+				return app.editpane.Init()
+			}
 		case "delete", "d":
 			if !m.IsFiltered() {
 				selectedIndex := m.Index()
@@ -64,10 +73,13 @@ func updateList(msg tea.Msg, m *list.Model) tea.Cmd {
 					if selectedIndex < len(m.Items()) {
 						todo := m.SelectedItem().(Todo)
 						app.db.UpdateStatus(todo)
-						if todo.Status_ == PENDING {
-							todo.UpdateStatus(COMPLETE)
-						} else {
-							todo.UpdateStatus(PENDING)
+						switch todo.Status_ {
+						case PENDING:
+							todo.Status_ = INPROGRESS
+						case INPROGRESS:
+							todo.Status_ = COMPLETE
+						case COMPLETE:
+							todo.Status_ = PENDING
 						}
 						items := m.Items()
 						items[selectedIndex] = todo
@@ -95,14 +107,14 @@ func (vP *ViewPane) InitTodoList(width, height int) {
 }
 
 func (vP ViewPane) View() string {
-	if termHeight < 24 || termWidth < 80 {
+	if termHeight < 40 || termWidth < 80 {
 		current := currentStyle.Render(fmt.Sprintf("Current terminal width: %d\nCurrent terminal height: %d\n", termWidth, termHeight))
-		shouldBe := shouldBeStyle.Render("Need width: 80\nNeed height: 24")
+		shouldBe := shouldBeStyle.Render("Need width: 80\nNeed height: 40")
 		warning := lipgloss.JoinVertical(lipgloss.Center, current, shouldBe)
 		warningStyle := lipgloss.NewStyle().AlignVertical(lipgloss.Center).AlignHorizontal(lipgloss.Center).Height(termHeight - 2).Width(termWidth - 2)
 		return warningStyle.Render(warning)
 	}
-	return paneStyle.Render(vP.Todos.View())
+	return paneStyle.MaxHeight(termHeight - 4).Render(vP.Todos.View())
 }
 
 func (tM *Todo) UpdateStatus(status Status) {

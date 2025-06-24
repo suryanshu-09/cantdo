@@ -9,9 +9,9 @@ type State int
 
 const (
 	viewPane State = iota
-	editPane
 	createPane
 	pomoDoro
+	editPane
 )
 
 var (
@@ -31,7 +31,7 @@ type AppModel struct {
 }
 
 func (aM AppModel) Init() tea.Cmd {
-	return nil
+	return tea.Batch(aM.createpane.Init(), aM.editpane.Init())
 }
 
 func (aM *AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -60,8 +60,7 @@ func (aM AppModel) View() string {
 	case viewPane:
 		return appStyle.Height(termHeight).Width(termWidth).Render(aM.viewpane.View())
 	case createPane:
-		// return appStyle.Height(termHeight).Width(termWidth).Render(createpane.View())
-		return aM.createpane.View()
+		return appStyle.Height(termHeight).Width(termWidth).Render(aM.createpane.View())
 	case editPane:
 		return appStyle.Height(termHeight).Width(termWidth).Render(aM.editpane.View())
 	default:
@@ -73,10 +72,11 @@ func Render() {
 	db, _ := NewDB()
 	Todos := db.ReadTodo()
 	app = &AppModel{db: db, Todos: Todos}
-	// app.DB.CreateTodo(Todo{Title_: "Gae Man tries Golang", Description_: "Let's see if he's any good.", Status_: PENDING})
-	// app.DB.CreateTodo(Todo{Title_: "Trying harder he is", Description_: "Won't make it he.", Status_: PENDING})
+	// app.db.CreateTodo(Todo{Title_: "Gae Man tries Golang", Description_: "Let's see if he's any good.", Status_: PENDING})
+	// app.db.CreateTodo(Todo{Title_: "Trying harder he is", Description_: "Won't make it he.", Status_: PENDING})
 	InitViewPane()
 	InitCreatePane()
+	InitEditPane()
 	if _, err := tea.NewProgram(app, tea.WithAltScreen(), tea.WithMouseAllMotion()).Run(); err != nil {
 		log.Fatal("the app frucked up")
 	}
