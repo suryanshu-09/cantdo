@@ -503,14 +503,14 @@ func (pM PaneModel) footerView() string {
 }
 
 func Render() {
-	// todos := []ListTodo{{Title: "Gae Man tries Golang", Description: "Let's see if he's any good.", Status: PENDING}, {Title: "Trying harder he is", Description: "Won't make it he.", Status: PENDING}}
+	todos := []ListTodo{{Title: "Gae Man tries Golang", Description: "Let's see if he's any good.", Status: PENDING}, {Title: "Trying harder he is", Description: "Won't make it he.", Status: PENDING}}
 	f, err := tea.LogToFile("debug.log", "debug")
 	if err != nil {
 		fmt.Println("fatal:", err)
 		os.Exit(1)
 	}
 	defer f.Close()
-	if _, err := tea.NewProgram(newSession(nil), tea.WithAltScreen(), tea.WithMouseCellMotion()).Run(); err != nil {
+	if _, err := tea.NewProgram(newSession(todos), tea.WithAltScreen(), tea.WithMouseCellMotion()).Run(); err != nil {
 		slog.Error("could not run app", "error", err)
 		os.Exit(1)
 	}
