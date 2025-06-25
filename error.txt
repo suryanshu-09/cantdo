@@ -128,3 +128,13 @@ For Input: Creating a new Todo
 UNIQUE constraint failed: to_do_schemas.title
 For Input: Creating a new Todo
 UNIQUE constraint failed: to_do_schemas.title
+For Input: Creating a new Todo
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Finish Proof
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Creating a new Todo
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Finish Hulaki
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Creating a new Todo
+UNIQUE constraint failed: to_do_schemas.title
