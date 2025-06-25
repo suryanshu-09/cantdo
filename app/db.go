@@ -35,9 +35,10 @@ type DB struct {
 }
 
 func NewDB() (*DB, error) {
-	homeDir, _ := os.UserHomeDir()
-	dbPath := homeDir + "/.local/share/cantdo/cantdo.db"
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
+	// homeDir, _ := os.UserHomeDir()
+	// dbPath := homeDir + "/.local/share/cantdo/cantdo.db"
+	// db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
+	db, err := gorm.Open(sqlite.Open("cantdo.db"), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
 		return nil, err
 	}
@@ -55,9 +56,10 @@ func (db *DB) Close() {
 }
 
 func writeError(err error, str string) {
-	homeDir, _ := os.UserHomeDir()
-	errPath := homeDir + "/.local/share/cantdo/error.txt"
-	errFile, _ := os.OpenFile(errPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// homeDir, _ := os.UserHomeDir()
+	// errPath := homeDir + "/.local/share/cantdo/error.txt"
+	// errFile, _ := os.OpenFile(errPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	errFile, _ := os.OpenFile("error.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	defer errFile.Close()
 	errFile.WriteString("For Input: " + str + "\n")
 	errFile.WriteString(err.Error() + "\n")

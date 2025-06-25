@@ -72,8 +72,8 @@ func Render() {
 	db, _ := NewDB()
 	Todos := db.ReadTodo()
 	app = &AppModel{db: db, Todos: Todos}
-	// app.db.CreateTodo(Todo{Title_: "Gae Man tries Golang", Description_: "Let's see if he's any good.", Status_: PENDING})
-	// app.db.CreateTodo(Todo{Title_: "Trying harder he is", Description_: "Won't make it he.", Status_: PENDING})
+	app.db.CreateTodo(Todo{Title_: "Gae Man tries Golang", Description_: "Let's see if he's any good.", Status_: PENDING})
+	app.db.CreateTodo(Todo{Title_: "Trying harder he is", Description_: "Won't make it he.", Status_: PENDING})
 	InitViewPane()
 	InitCreatePane()
 	InitEditPane()

@@ -144,3 +144,11 @@ For Input: Finish Hulaki
 UNIQUE constraint failed: to_do_schemas.title
 For Input: Have some soup
 UNIQUE constraint failed: to_do_schemas.title
+For Input: Gae Man tries Golang
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Trying harder he is
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Gae Man tries Golang
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Trying harder he is
+UNIQUE constraint failed: to_do_schemas.title
