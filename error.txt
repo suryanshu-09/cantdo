@@ -138,3 +138,9 @@ For Input: Finish Hulaki
 UNIQUE constraint failed: to_do_schemas.title
 For Input: Creating a new Todo
 UNIQUE constraint failed: to_do_schemas.title
+For Input: Finish Cantdo
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Finish Hulaki
+UNIQUE constraint failed: to_do_schemas.title
+For Input: Have some soup
+UNIQUE constraint failed: to_do_schemas.title

@@ -82,9 +82,8 @@ func (eP EditPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if eP.EditForm.State == huh.StateCompleted {
 		if eP.edit != nil && *eP.edit {
 			app.db.UpdateDescription(*eP.todo)
-			if eP.before.Title_ != eP.todo.Title_ {
-				app.db.Delete(eP.before)
-			}
+			app.db.Close()
+			app.db, _ = NewDB()
 			app.Todos = app.db.ReadTodo()
 			app.viewpane.InitTodoList(termWidth, termHeight)
 		}
