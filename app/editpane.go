@@ -58,7 +58,7 @@ func InitEditPane() {
 			).Title("Edit Pane").Description("\n"),
 		).WithShowHelp(true),
 	}
-	app.editpane.EditForm.WithHeight(termHeight - 6)
+	// app.editpane.EditForm.WithHeight(termHeight - 6)
 }
 
 func (eP EditPane) Init() tea.Cmd {
