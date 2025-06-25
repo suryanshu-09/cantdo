@@ -61,6 +61,7 @@ func (cP CreatePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		termHeight = msg.Height
 		termWidth = msg.Width
+		return cP, cP.Init()
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -97,5 +98,5 @@ func (cP CreatePane) View() string {
 		warningStyle := lipgloss.NewStyle().AlignVertical(lipgloss.Center).AlignHorizontal(lipgloss.Center).Height(termHeight - 2).Width(termWidth - 2)
 		return warningStyle.Render(warning)
 	}
-	return paneStyle.MaxHeight(termHeight - 6).Render(strings.TrimSuffix(cP.CreateForm.View(), "\n\n"))
+	return paneStyle.Height(termHeight - 6).MaxHeight(termHeight - 6).Render(strings.TrimSuffix(cP.CreateForm.View(), "\n\n"))
 }

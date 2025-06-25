@@ -32,7 +32,7 @@ func (vP ViewPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "tab":
 			app.state = createPane
-			return vP, nil
+			return vP, app.createpane.Init()
 		}
 	}
 	var cmd tea.Cmd

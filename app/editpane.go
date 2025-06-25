@@ -15,14 +15,17 @@ type EditPane struct {
 	todo     *Todo
 	before   Todo
 	edit     *bool
+	ready    bool
 }
 
 func InitEditPane() {
 	edit := new(bool)
+	ready := new(bool)
 	if app.editpane.todo == nil {
 		app.editpane.todo = &Todo{}
 	}
 	app.editpane = EditPane{
+		ready:  *ready,
 		todo:   app.editpane.todo,
 		before: *app.editpane.todo,
 		edit:   edit,
@@ -31,6 +34,7 @@ func InitEditPane() {
 				huh.NewInput().
 					CharLimit(32).
 					Title("Change Title").
+					Placeholder(app.editpane.before.Title_).
 					Value(&app.editpane.todo.Title_).
 					Validate(func(t string) error {
 						if t == "" {
@@ -54,6 +58,7 @@ func InitEditPane() {
 			).Title("Edit Pane").Description("\n"),
 		).WithShowHelp(true),
 	}
+	app.editpane.EditForm.WithHeight(termHeight - 6)
 }
 
 func (eP EditPane) Init() tea.Cmd {
@@ -106,5 +111,5 @@ func (eP EditPane) View() string {
 		warningStyle := lipgloss.NewStyle().AlignVertical(lipgloss.Center).AlignHorizontal(lipgloss.Center).Height(termHeight - 2).Width(termWidth - 2)
 		return warningStyle.Render(warning)
 	}
-	return paneStyle.MaxHeight(termHeight - 6).Render(strings.TrimSuffix(eP.EditForm.View(), "\n\n"))
+	return paneStyle.Height(termHeight - 6).MaxHeight(termHeight - 6).Render(strings.TrimSuffix(eP.EditForm.View(), "\n\n"))
 }
